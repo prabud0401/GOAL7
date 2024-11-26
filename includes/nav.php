@@ -1,19 +1,52 @@
+<?php
+// Ensure user is logged in
+if (isset($_SESSION['username'])) {
+    $username = $_SESSION['username'];
 
+    // Query to check promo eligibility
+    $query = "SELECT promo_used FROM users WHERE username = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        $stmt->bind_result($promoUsed);
+        $stmt->fetch();
+    } else {
+        echo "<p>Error: User not found.</p>";
+        exit;
+    }
+}
+?>
 <!-- Navigation Bar -->
-<nav class="top-0 z-10 w-full" >
-    <div class="max-w-screen-xl mx-auto px-6 py-4 flex justify-between items-center">
+<nav class="top-0 z-10 w-full flex flex-col justify-center items-center">
+    <div class="w-full flex flex-col justify-center items-center">
+        <!-- Promo Message -->
+        <?php if (isset($promoUsed) && $promoUsed == 0): ?>
+            <div class="flex items-center space-x-2 text-green-500">
+                <i class="ri-check-fill text-xl"></i>
+                <span class="text-sm">50% off discount promo is available! Book a futsal and get the discount.</span>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="w-full md:px-6 py-4 flex justify-between items-center">
         <!-- Logo Section -->
         <a class="relative" href="./index.php">
-            <!-- Futsal Logo -->
             <img src="./assets/images/logo.gif" alt="Futsal Logo" class="w-48 h-auto">
-            
-            <!-- Centered Text -->
-            <p class="absolute left-8 bottom-4 inset-0 flex items-center justify-center text-yellow-400 text-2xl font-bold">GOAL7</p>
+            <p class="absolute left-8 md:bottom-4 bottom-2 inset-0 flex items-center justify-center text-yellow-400 md:text-2xl text-xl font-bold">GOAL7</p>
         </a>
 
         <!-- Navigation Links -->
-        <div class="flex items-center space-x-6 text-white">
+        <div class="flex items-center space-x-4 text-white">
+            <!-- Login Button -->
+        <a href="futsals.php" class="px-4 py-2 text-yellow-500  hover:text-yellow-900 hover:text-white transition">
+            Book
+        </a>
             <!-- Account Icon with Dropdown -->
+            <?php if (isset($_SESSION['username'])): ?>
+
             <div class="relative">
                 <!-- Account Button -->
                 <button id="accountButton" class="flex items-center space-x-2 hover:text-yellow-300">
@@ -23,32 +56,35 @@
                 <!-- Floating Dropdown -->
                 <div id="accountDropdown" class="hidden absolute right-0 mt-2 w-40 bg-gray-700 text-white rounded-lg shadow-lg">
                     <ul class="py-2">
-                        <?php if (isset($_SESSION['username'])): ?>
                             <!-- If user is logged in, show Profile, Dashboard, Logout -->
                             <li class="px-4 py-2 hover:bg-gray-600 cursor-pointer">
                                 <a href="profile.php">Profile</a>
                             </li>
                             <li class="px-4 py-2 hover:bg-gray-600 cursor-pointer">
-                                <a href="dashboard.php">Dashboard</a>
+                                <a href="dash.php">Dashboard</a>
                             </li>
                             <li class="px-4 py-2 hover:bg-gray-600 cursor-pointer">
                                 <a href="logout.php">Logout</a>
                             </li>
-                        <?php else: ?>
-                            <!-- If user is not logged in, show Login and Join -->
-                            <li class="px-4 py-2 hover:bg-gray-600 cursor-pointer">
-                                <a href="log.php">Login</a>
-                            </li>
-                            <li class="px-4 py-2 hover:bg-gray-600 cursor-pointer">
-                                <a href="join.php">Join</a>
-                            </li>
-                        <?php endif; ?>
+                        
                     </ul>
                 </div>
             </div>
+            <?php else: ?>
+                <div class="flex space-x-4">
+        <!-- Login Button -->
+        <a href="log.php" class="px-4 py-2 text-yellow-500 border border-yellow-500 rounded hover:bg-yellow-500 hover:text-white transition">
+            Login
+        </a>
 
+        <!-- Join Button -->
+        <a href="join.php" class="px-4 py-2 text-white bg-yellow-500 rounded hover:bg-yellow-600 transition">
+            Join
+        </a>
+    </div>
+                        <?php endif; ?>
+            <!-- Show Help and Notifications only if the user is logged in -->
             <?php if (isset($_SESSION['username'])): ?>
-                <!-- Show Help and Notifications only if the user is logged in -->
                 <!-- Help Icon -->
                 <button class="flex items-center space-x-2 hover:text-yellow-300">
                     <i class="ri-question-line text-2xl"></i>

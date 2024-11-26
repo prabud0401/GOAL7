@@ -1,6 +1,7 @@
-<?php include('./fun/db.php'); ?>
 <?php include('./includes/header.php'); ?>
-
+<?php
+session_start(); // Make sure the session is started
+?>
 
 <?php include('./includes/nav.php'); ?>
 

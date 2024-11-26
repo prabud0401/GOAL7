@@ -82,18 +82,21 @@ $paginationPages = generatePagination($conn, $search);
 
 <!-- Search Section -->
 <section class="mt-10 w-full flex justify-around">
-    <form method="GET" action="" class="flex space-x-4">
+    <form method="GET" action="" class="flex md:space-x-4 md:space-y-0 space-y-8 w-full md:flex-row flex-col">
         <input type="text" name="search" id="search" placeholder="Search by name or features" class="p-2 bg-zinc-700 text-white rounded-md" value="<?= htmlspecialchars($search) ?>">
-        
-        <!-- Search Button -->
-        <button type="submit" class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600">
-            Search
-        </button>
+        <div class="flex space-x-8 w-full">
 
-        <!-- Reset Button -->
-        <button type="button" onclick="resetSearch()" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">
-            Reset
-        </button>
+            <!-- Search Button -->
+            <button type="submit" class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600">
+                Search
+            </button>
+
+            <!-- Reset Button -->
+            <button type="button" onclick="resetSearch()" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">
+                Reset
+            </button>
+        </div>
+
     </form>
 </section>
 
@@ -107,7 +110,7 @@ $paginationPages = generatePagination($conn, $search);
 <!-- Available Slots Section -->
 <section id="available-slots" class="mt-6">
     <h2 class="text-2xl font-bold text-yellow-500 mb-4">Available Futsal Courts</h2>
-    <div class="grid grid-cols-12 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <?php
         // Loop through each futsal court and display it
         foreach ($courts as $court) {

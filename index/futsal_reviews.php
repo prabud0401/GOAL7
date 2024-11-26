@@ -21,16 +21,16 @@ $reviews = getAllReviews($conn);
 ?>
 
 <!-- Reviews Section -->
-<section class="mt-10">
+<section class="mt-10 w-full">
     <h2 class="text-2xl font-bold text-yellow-500 mb-4">Player Reviews</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
         <?php
         // Loop through each review and display it
         foreach ($reviews as $review) {
             // Get the star rating and ensure it's between 1 and 5
             $stars = (int)$review['stars'];
             ?>
-            <div class="bg-zinc-800 rounded-lg overflow-hidden shadow-md p-4 w-[400px]">
+            <div class="bg-zinc-800 rounded-lg overflow-hidden shadow-md p-4 md:w-[400px] w-full">
                 <div class="flex w-full justify-between">
 
                     <h3 class="font-bold">

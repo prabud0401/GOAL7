@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $start_hour = $_POST['start_hour'];
     $end_hour = $_POST['end_hour'];
     $image = $_POST['image'];
-
+    $start_date = $_POST['start_date'];  // Newly added start date
+    $end_date = $_POST['end_date'];      // Newly added end date
 
     // Prepare the SQL query to insert data into the futsal_courts table
     $query = "INSERT INTO futsal_courts (name, location, image, features, price_per_hour, max_players, availability_status, owner_id, area_id, start_hour, end_hour) 
@@ -41,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Get the ID of the inserted futsal court
         $futsalCourtId = $stmt->insert_id;
 
-        // Insert hourly slots for the futsal court
-        insertHourlySlots($conn, $futsalCourtId, $start_hour, $end_hour);
+        // Insert hourly slots for each day between start_date and end_date
+        insertHourlySlots($conn, $futsalCourtId, $start_date, $end_date, $start_hour, $end_hour);
 
         // Return a success response
         $response = ['status' => 'success', 'message' => 'Futsal court added successfully!'];
@@ -55,19 +56,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode($response);
 }
 
-// Function to insert hourly slots into futsal_court_slots
-function insertHourlySlots($conn, $futsalCourtId, $startHour, $endHour) {
-    $start = strtotime($startHour);
-    $end = strtotime($endHour);
+// Function to insert hourly slots into futsal_court_slots for each day between start_date and end_date
+function insertHourlySlots($conn, $futsalCourtId, $startDate, $endDate, $startHour, $endHour) {
+    // Convert start_date and end_date to timestamps
+    $startDate = strtotime($startDate);
+    $endDate = strtotime($endDate);
 
-    $query = "INSERT INTO futsal_court_slots (futsal_court_id, slot_hour, is_booked) VALUES (?, ?, 0)";
-    $stmt = $conn->prepare($query);
+    // Loop through each day in the date range
+    while ($startDate <= $endDate) {
+        $currentDay = date('Y-m-d', $startDate);
 
-    while ($start < $end) {
-        $slotHour = date('H:i:s', $start);
-        $stmt->bind_param("is", $futsalCourtId, $slotHour);
-        $stmt->execute();
-        $start = strtotime('+1 hour', $start);
+        // Insert hourly slots for this day
+        insertSlotsForDay($conn, $futsalCourtId, $currentDay, $startHour, $endHour);
+
+        // Move to the next day
+        $startDate = strtotime('+1 day', $startDate);
     }
 }
+
+// Function to insert hourly slots for a specific day
+function insertSlotsForDay($conn, $futsalCourtId, $currentDay, $startHour, $endHour) {
+    $start = strtotime($currentDay . ' ' . $startHour);
+    $end = strtotime($currentDay . ' ' . $endHour);
+
+    $query = "INSERT INTO futsal_court_slots (futsal_court_id, slot_date, slot_hour, is_booked) VALUES (?, ?, ?, 0)";
+    $stmt = $conn->prepare($query);
+
+    // Loop through each hour in the specified range
+    while ($start < $end) {
+        $slotHour = date('H:i:s', $start);
+        $stmt->bind_param("iss", $futsalCourtId, $currentDay, $slotHour);
+        $stmt->execute();
+        $start = strtotime('+1 hour', $start); // Move to the next hour
+    }
+}
+
 ?>

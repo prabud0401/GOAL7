@@ -54,6 +54,18 @@
                 <input type="text" id="location" name="location" class="p-2 bg-zinc-700 text-white rounded-md" required>
             </div>
 
+            <!-- Start Date (Fixed, Display Only) -->
+            <div class="flex flex-col">
+                <label for="start_date" class="text-white">Start Date</label>
+                <input type="text" id="start_date" name="start_date" class="p-2 bg-zinc-700 text-white rounded-md" readonly value="<?php echo date('Y-m-d'); ?>">
+            </div>
+
+            <!-- End Date (Selectable, but must be >= Tomorrow's date) -->
+            <div class="flex flex-col">
+                <label for="end_date" class="text-white">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="p-2 bg-zinc-700 text-white rounded-md" required min="<?php echo date('Y-m-d', strtotime('tomorrow')); ?>">
+            </div>
+
             <!-- Features -->
             <div class="flex flex-col">
                 <label for="features" class="text-white">Features</label>

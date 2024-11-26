@@ -5,7 +5,6 @@ session_start();
 // Include necessary files (header, nav, footer, etc.)
 include('./includes/header.php');
 include('./includes/nav.php');
-include('./fun/db.php');  // Include the database connection
 
 // Check if the required query parameters are set in the URL
 if (isset($_GET['futsal_id']) && isset($_GET['slot_ids']) && isset($_GET['total_duration']) && isset($_GET['total_price']) && isset($_GET['username'])) {
@@ -34,6 +33,33 @@ if ($stmt->num_rows > 0) {
     $stmt->fetch();
 } else {
     echo "<p>Error: Futsal court not found.</p>";
+    exit;
+}
+
+// Check if the user has used the promo before and if promo_count is greater than 5
+$query = "SELECT promo_count, promo_used FROM users WHERE username = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$stmt->store_result();
+
+$promoApplied = false; // Variable to track if promo is applied
+$discountedPrice = $totalPrice;
+
+if ($stmt->num_rows > 0) {
+    $stmt->bind_result($promoCount, $promoUsed);
+    $stmt->fetch();
+
+    // If the user has promo_count > 5 and hasn't used the promo yet
+    if ($promoCount > 5 && $promoUsed == 0) {
+        // Apply the 50% discount
+        $discountedPrice = $totalPrice / 2;
+        $promoApplied = true;
+
+        
+    }
+} else {
+    echo "<p>Error: User not found.</p>";
     exit;
 }
 ?>
@@ -65,7 +91,17 @@ if ($stmt->num_rows > 0) {
         <!-- Booking Summary -->
         <div class="mt-4">
             <p class="text-white">Total Duration: <?= $totalDuration; ?> hour(s)</p>
-            <p class="text-white">Total Price: LKR <?= number_format($totalPrice, 2); ?></p>
+
+            <?php if ($promoApplied) { ?>
+                <p class="text-white text-green-500">
+                    <i class="ri-check-fill"></i> Promo Applied: 50% Discount
+                </p>
+                <p class="line-through text-white">Total Price: LKR <?= number_format($totalPrice, 2); ?></p>
+                <p class="text-white font-bold">Discounted Price: LKR <?= number_format($discountedPrice, 2); ?></p>
+            <?php } else { ?>
+                <p class="text-white">Total Price: LKR <?= number_format($totalPrice, 2); ?></p>
+            <?php } ?>
+
             <p class="text-white">Username: <?= htmlspecialchars($username); ?></p>
         </div>
 
@@ -128,91 +164,83 @@ if ($stmt->num_rows > 0) {
             <div class="bg-white p-6 rounded-lg shadow-lg">
                 <h2 class="text-xl font-bold text-green-500">Payment Successful!</h2>
                 <p class="mt-4">Your booking has been processed successfully.</p>
-                <button class="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600" id="successClose">
-                    Close
-                </button>
+                <button class="mt-4 px-4 py-2 bg-green-500 text-white rounded" id="successClose">Close</button>
             </div>
         </div>
 
         <div id="errorModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center hidden">
             <div class="bg-white p-6 rounded-lg shadow-lg">
                 <h2 class="text-xl font-bold text-red-500">Payment Failed!</h2>
-                <p class="mt-4">There was an error processing your payment. Please try again.</p>
-                <button class="mt-4 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600" id="errorClose">
-                    Close
-                </button>
+                <p class="mt-4">There was an issue with your payment. Please try again.</p>
+                <button class="mt-4 px-4 py-2 bg-red-500 text-white rounded" id="errorClose">Close</button>
             </div>
         </div>
     </section>
 </main>
 
 <script>
-function processPayment(paymentStatus) {
-    document.getElementById('bookingModal').classList.remove('hidden');
+    function processPayment(paymentStatus) {
+        document.getElementById('bookingModal').classList.remove('hidden');
 
-    $.ajax({
-        url: './fun/payment-status.php',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(paymentStatus),
-        success: function(response) {
-            document.getElementById('bookingModal').classList.add('hidden');
+        $.ajax({
+            url: './fun/payment-status.php',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(paymentStatus),
+            success: function(response) {
+                document.getElementById('bookingModal').classList.add('hidden');
 
-            // Assume the response contains the payment_id
-            if (response && response.payment_id) {
-                const paymentId = response.payment_id;
-
-                // Redirect to confirmation.php with payment_id in the URL
-                window.location.href = `recipt.php?payment_id=${encodeURIComponent(paymentId)}`;
-            } else {
+                if (response && response.payment_id) {
+                    const paymentId = response.payment_id;
+                    window.location.href = `recipt.php?payment_id=${encodeURIComponent(paymentId)}`;
+                } else {
+                    document.getElementById('errorModal').classList.remove('hidden');
+                }
+            },
+            error: function(error) {
+                document.getElementById('bookingModal').classList.add('hidden');
                 document.getElementById('errorModal').classList.remove('hidden');
             }
-        },
-        error: function(error) {
-            document.getElementById('bookingModal').classList.add('hidden');
-            document.getElementById('errorModal').classList.remove('hidden');
-        }
+        });
+    }
+
+    document.getElementById('paymentMethod').addEventListener('change', function() {
+        const paymentMethod = this.value;
+        document.getElementById('cardPaymentForm').classList.toggle('hidden', paymentMethod !== 'card');
+        document.getElementById('bankTransferForm').classList.toggle('hidden', paymentMethod !== 'bank');
     });
-}
 
+    document.getElementById('cardPaymentFormDetails').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const paymentStatus = {
+            method: 'card',
+            amount: <?= $totalPrice ?>,
+            slots: <?= json_encode($slotIds) ?>,
+            futsal_id: <?= $futsalId ?>,
+            totalDuration: <?= $totalDuration ?>,
+            username: '<?= $username ?>'
+        };
+        processPayment(paymentStatus);
+    });
 
-document.getElementById('paymentMethod').addEventListener('change', function() {
-    const paymentMethod = this.value;
-    document.getElementById('cardPaymentForm').classList.toggle('hidden', paymentMethod !== 'card');
-    document.getElementById('bankTransferForm').classList.toggle('hidden', paymentMethod !== 'bank');
-});
+    document.getElementById('confirmBankTransfer').addEventListener('click', function() {
+        const paymentStatus = {
+            method: 'bank',
+            amount: <?= $totalPrice ?>,
+            slots: <?= json_encode($slotIds) ?>,
+            futsal_id: <?= $futsalId ?>,
+            totalDuration: <?= $totalDuration ?>,
+            username: '<?= $username ?>'
+        };
+        processPayment(paymentStatus);
+    });
 
-document.getElementById('cardPaymentFormDetails').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const paymentStatus = {
-        method: 'card',
-        amount: <?= $totalPrice ?>,
-        slots: <?= json_encode($slotIds) ?>,
-        futsal_id: <?= $futsalId ?>,
-        totalDuration: <?= $totalDuration ?>,
-        username: '<?= $username ?>'
-    };
-    processPayment(paymentStatus);
-});
+    document.getElementById('successClose').addEventListener('click', function() {
+        document.getElementById('successModal').classList.add('hidden');
+        window.location.href = 'recipt.php?';
+    });
 
-document.getElementById('confirmBankTransfer').addEventListener('click', function() {
-    const paymentStatus = {
-        method: 'bank',
-        amount: <?= $totalPrice ?>,
-        slots: <?= json_encode($slotIds) ?>,
-        futsal_id: <?= $futsalId ?>,
-        totalDuration: <?= $totalDuration ?>,
-        username: '<?= $username ?>'
-    };
-    processPayment(paymentStatus);
-});
-
-document.getElementById('successClose').addEventListener('click', function() {
-    document.getElementById('successModal').classList.add('hidden');
-    window.location.href = 'recipt.php?';
-});
-
-document.getElementById('errorClose').addEventListener('click', function() {
-    document.getElementById('errorModal').classList.add('hidden');
-});
+    document.getElementById('errorClose').addEventListener('click', function() {
+        document.getElementById('errorModal').classList.add('hidden');
+    });
 </script>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 26, 2024 at 07:36 AM
+-- Generation Time: Nov 26, 2024 at 04:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -34,6 +34,38 @@ CREATE TABLE `areas` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+INSERT INTO `areas` (`id`, `name`, `created_at`, `updated_at`) VALUES
+(1, 'North', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(2, 'South', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(3, 'East', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(4, 'West', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(5, 'Colombo', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(6, 'Kandy', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(7, 'Galle', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(8, 'Matara', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
+(9, 'Colombo', '2024-11-26 05:26:17', '2024-11-26 05:26:17'),
+(10, 'Kandy', '2024-11-26 05:26:17', '2024-11-26 05:26:17'),
+(11, 'Galle', '2024-11-26 05:26:17', '2024-11-26 05:26:17'),
+(12, 'Jaffna', '2024-11-26 05:26:17', '2024-11-26 05:26:17'),
+(13, 'Matara', '2024-11-26 05:26:17', '2024-11-26 05:26:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `futsal_bookings`
+--
+
+CREATE TABLE `futsal_bookings` (
+  `id` int(11) NOT NULL,
+  `futsal_court_id` int(11) DEFAULT NULL,
+  `username` varchar(255) NOT NULL,
+  `total_duration` int(11) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  `booking_code` varchar(20) NOT NULL,
+  `booking_date` datetime DEFAULT current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- --------------------------------------------------------
 
 --
@@ -53,6 +85,8 @@ CREATE TABLE `futsal_courts` (
   `area_id` int(11) NOT NULL,
   `start_hour` time NOT NULL,
   `end_hour` time NOT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -67,8 +101,10 @@ CREATE TABLE `futsal_court_slots` (
   `futsal_court_id` int(11) DEFAULT NULL,
   `slot_hour` time NOT NULL,
   `is_booked` tinyint(1) DEFAULT 0,
-  `booked_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `booked_by` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `payment_id` varchar(255) DEFAULT NULL,
+  `slot_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -89,16 +125,44 @@ CREATE TABLE `futsal_reviews` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `payments`
+--
+
+CREATE TABLE `payments` (
+  `id` int(11) NOT NULL,
+  `payment_id` varchar(50) NOT NULL,
+  `method` varchar(50) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `slots` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`slots`)),
+  `username` varchar(255) NOT NULL,
+  `futsal_id` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `status` enum('pending','completed','failed') DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `username` varchar(255) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `full_name` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `name` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `profile_image_url` varchar(255) DEFAULT NULL,
+  `current_area` varchar(100) DEFAULT NULL,
+  `role` enum('client','customer') DEFAULT 'customer',
+  `verified` tinyint(1) DEFAULT 0,
+  `promo_count` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `promo_used` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -110,6 +174,14 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `areas`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `futsal_bookings`
+--
+ALTER TABLE `futsal_bookings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `booking_code` (`booking_code`),
+  ADD KEY `futsal_court_id` (`futsal_court_id`);
 
 --
 -- Indexes for table `futsal_courts`
@@ -131,10 +203,18 @@ ALTER TABLE `futsal_reviews`
   ADD KEY `futsal_court_id` (`futsal_court_id`);
 
 --
+-- Indexes for table `payments`
+--
+ALTER TABLE `payments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `payment_id` (`payment_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -144,6 +224,12 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `areas`
 --
 ALTER TABLE `areas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `futsal_bookings`
+--
+ALTER TABLE `futsal_bookings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -165,6 +251,12 @@ ALTER TABLE `futsal_reviews`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -173,6 +265,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `futsal_bookings`
+--
+ALTER TABLE `futsal_bookings`
+  ADD CONSTRAINT `futsal_bookings_ibfk_1` FOREIGN KEY (`futsal_court_id`) REFERENCES `futsal_courts` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `futsal_reviews`

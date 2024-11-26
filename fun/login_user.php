@@ -46,19 +46,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Store the username in the session
                     $_SESSION['username'] = $user['username'];
 
+                    // Debugging: Check if username is stored in the session
+                    if (isset($_SESSION['username'])) {
+                        echo "Username stored in session: " . $_SESSION['username']; // Debugging message
+                    } else {
+                        echo "Username not stored in session.";
+                    }
+
                     // Set redirect URL based on role
                     if ($role === 'admin') {
                         $response['status'] = 'success';
                         $response['message'] = 'Login successful!';
-                        $response['redirect_url'] = './admin_dashboard.php'; // Admin dashboard
+                        $response['redirect_url'] = 'admin_dashboard.php'; // Admin dashboard
                     } elseif ($role === 'client') {
                         $response['status'] = 'success';
                         $response['message'] = 'Login successful!';
-                        $response['redirect_url'] = './client_dashboard.php'; // Client dashboard
+                        $response['redirect_url'] = 'index.php'; // Client dashboard
                     } elseif ($role === 'customer') {
                         $response['status'] = 'success';
                         $response['message'] = 'Login successful!';
-                        $response['redirect_url'] = './customer_dashboard.php'; // Customer dashboard
+                        $response['redirect_url'] = 'index.php'; // Customer dashboard
                     } else {
                         $response['status'] = 'error';
                         $response['message'] = 'User role not recognized.';

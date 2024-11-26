@@ -107,6 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $updatePromoCountQuery = "UPDATE users SET promo_count = promo_count + 1 WHERE username = ?";
                 $promoStmt = $conn->prepare($updatePromoCountQuery);
 
+                // Update promo_used to 1
+                $updateQuery = "UPDATE users SET promo_used = 1 WHERE username = ?";
+                $updateStmt = $conn->prepare($updateQuery);
+                $updateStmt->bind_param("s", $username);
+                $updateStmt->execute();
+
                 if ($promoStmt) {
                     $promoStmt->bind_param("s", $username);
                     $promoStmt->execute();
