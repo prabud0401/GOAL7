@@ -1,4 +1,11 @@
-<?php include('../includes/header.php'); ?>
+<?php include('../includes/header.php'); 
+// Check if the user is logged in and has the 'client' role
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'client') {
+    // If not, redirect to the login page (or any other page you choose)
+    header('Location: ../index.php');
+    exit();
+}
+?>
 
 <!-- Modal for Loading/Processing -->
 <div id="modal" class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">

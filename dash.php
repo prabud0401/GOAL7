@@ -71,42 +71,64 @@ $totalPages = ceil($totalBookingsCount / $limit);
 
 
 <!-- Main Content -->
-<section class="relative md:w-3/4 flex justify-center items-center bg-slate-500 rounded-3xl p-4">
-    <!-- cards -->
-    <div class="flex md:flex-row flex-col  gap-8 justify-center items-center w-full">
-        
-        <!-- Hello Card -->
-        <div class="w-[200px] h-[80px]  p-4 flex items-center justify-center text-black">
-            <p class="text-lg">Hello, <?php echo htmlspecialchars($user['name']); ?>!</p>
-        </div>
-
-        <!-- Total Bookings Card -->
-        <div class="w-[200px] h-[80px] bg-gradient-to-r from-green-500 via-yellow-500 to-orange-500 rounded-lg p-4 flex items-center justify-center text-white">
-            <div class="flex flex-col items-center">
-                <i class="ri-bookmark-line text-2xl"></i>
-                <p class="text-lg"><?php echo $totalBookings; ?> Bookings</p>
+ <div class="flex w-full justify-center items-center space-x-8">
+    <section class="relative md:w-3/4 flex justify-center items-center bg-slate-500 rounded-3xl p-4">
+        <!-- cards -->
+        <div class="flex md:flex-row flex-col  gap-8 justify-center items-center w-full">
+            
+            <!-- Hello Card -->
+            <div class="w-[200px] h-[80px]  p-4 flex items-center justify-center text-black">
+                <p class="text-lg">Hello, <?php echo htmlspecialchars($user['name']); ?>!</p>
             </div>
-        </div>
 
-        <!-- Account Verification Status Card -->
-        <a href="account_verifi.php?username=<?php echo urlencode($username); ?>" class="w-[200px] h-[80px] bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 rounded-lg p-4 flex items-center justify-center text-white">
-            <div class="flex flex-col items-center">
-                <i class="ri-check-line text-2xl"></i>
-                <p class="text-lg"><?php echo $verificationStatus; ?></p>
+            <!-- Total Bookings Card -->
+            <div class="w-[200px] h-[80px] bg-gradient-to-r from-green-500 via-yellow-500 to-orange-500 rounded-lg p-4 flex items-center justify-center text-white">
+                <div class="flex flex-col items-center">
+                    <i class="ri-bookmark-line text-2xl"></i>
+                    <p class="text-lg"><?php echo $totalBookings; ?> Bookings</p>
+                </div>
             </div>
-        </a>
+
+            <!-- Account Verification Status Card -->
+            <a href="account_verifi.php?username=<?php echo urlencode($username); ?>" class="w-[200px] h-[80px] bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 rounded-lg p-4 flex items-center justify-center text-white">
+                <div class="flex flex-col items-center">
+                    <i class="ri-check-line text-2xl"></i>
+                    <p class="text-lg"><?php echo $verificationStatus; ?></p>
+                </div>
+            </a>
 
 
-        <!-- User Role Card -->
-        <div class="w-[200px] h-[80px] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 rounded-lg p-4 flex items-center justify-center text-white">
-            <div class="flex flex-col items-center">
-                <i class="ri-user-line text-2xl"></i>
-                <p class="text-lg"><?php echo ucfirst($userRole); ?></p>
+            <!-- User Role Card -->
+            <div class="w-[200px] h-[80px] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 rounded-lg p-4 flex items-center justify-center text-white">
+                <div class="flex flex-col items-center">
+                    <i class="ri-user-line text-2xl"></i>
+                    <p class="text-lg"><?php echo ucfirst($userRole); ?></p>
+                </div>
             </div>
-        </div>
 
-    </div>
-</section>
+        </div>
+    </section>
+    <?php
+// Check if the user role is 'client'
+if ($_SESSION['role'] == 'client') :
+?>
+    <section class="relative md:w-1/4 flex justify-center items-center bg-slate-500 rounded-3xl p-4">
+        <!-- cards -->
+        <div class="flex md:flex-row flex-col gap-8 justify-center items-center w-full">
+            <!-- User Role Card -->
+            <a href="./client/post_court.php" class="w-[200px] h-[80px] p-4 flex items-center justify-center text-white">
+                <div class="flex flex-col items-center">
+                    <i class="ri-football-line text-2xl"></i>
+                    <p class="text-lg">Client Side</p>
+                </div>
+            </a>
+        </div>
+    </section>
+<?php
+endif;
+?>
+
+</div>
 
 <!-- Bookings Table Section -->
 <section class="relative w-full p-4 bg-slate-400 rounded-3xl mt-8 ">
