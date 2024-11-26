@@ -44,12 +44,11 @@
 
 <?php include('./includes/footer.php'); ?>
 
-<!-- jQuery for AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         // Handle form submission via AJAX
-        $('#login-form').on('submit', function(e) {
+        $('#login-form').on('submit', function(e) { // Corrected form ID
             e.preventDefault();
 
             // Show loading modal
@@ -61,7 +60,7 @@
 
             // AJAX request to login the user
             $.ajax({
-                url: './fun/login_user.php', // Backend PHP to handle login
+                url: './fun/login_user.php', // Adjust the PHP file path as needed
                 type: 'POST',
                 data: formData,
                 contentType: false,
@@ -71,8 +70,8 @@
                     if (result.status === 'success') {
                         $('#modal-message').text(result.message);
                         setTimeout(() => {
-                            window.location.href = result.redirect_url; // Redirect to the user's dashboard
-                        }, 2000);
+                            window.location.href = './index.php'; // Redirect to index.php after successful login
+                        }, 2000); // Wait for 2 seconds before redirect
                     } else {
                         $('#modal-message').text(result.message);
                     }
@@ -90,3 +89,4 @@
         });
     });
 </script>
+

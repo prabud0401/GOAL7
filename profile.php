@@ -1,15 +1,14 @@
-<?php
-// Start the session only if it's not already started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+<?php include('./includes/header.php'); ?>
+<?php include('./includes/nav.php'); ?>
 
-// Include the database connection
-include('./fun/db.php');
+<?php
+
+
+
 
 // Check if the user is logged in
 if (!isset($_SESSION['username'])) {
-    header('Location: login.php'); // Redirect to login page if not logged in
+    header('Location: log.php'); // Redirect to login page if not logged in
     exit();
 }
 
@@ -60,7 +59,7 @@ if (isset($_GET['delete']) && $_GET['delete'] == 'true') {
     if ($delete_stmt->execute()) {
         session_unset(); // Clear session
         session_destroy(); // Destroy session
-        header('Location: login.php'); // Redirect to login after account deletion
+        header('Location: log.php'); // Redirect to login after account deletion
         exit();
     } else {
         $message = "Error deleting account!";
@@ -70,8 +69,6 @@ if (isset($_GET['delete']) && $_GET['delete'] == 'true') {
 $conn->close();
 ?>
 
-<?php include('./includes/header.php'); ?>
-<?php include('./includes/nav.php'); ?>
 
 <!-- Modal for Loading/Processing -->
 <div id="modal" class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">

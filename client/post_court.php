@@ -1,5 +1,4 @@
 <?php include('../includes/header.php'); ?>
-<?php include('../includes/nav.php'); ?>
 
 <!-- Modal for Loading/Processing -->
 <div id="modal" class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">

@@ -1,4 +1,11 @@
+<?php include('./fun/db.php'); ?>
+
 <?php
+// Start the session only if it's not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Ensure user is logged in
 if (isset($_SESSION['username'])) {
     $username = $_SESSION['username'];

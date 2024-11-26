@@ -9,8 +9,8 @@
 </div>
 
 <!-- Main Content -->
-<main class="bg-slate-500 rounded-3xl w-full h-auto flex justify-center md:p-16 p-4">
-    <section class="w-full md:w-3/4 w-full h-full">
+<main class=" w-full h-auto flex justify-center ">
+    <section class="w-full md:w-3/4 lg:w-1/2 h-full bg-slate-500 rounded-3xl md:p-16 p-4">
         <h2 class="text-2xl font-bold text-yellow-500 mb-8 text-center">User Registration</h2>
 
         <form id="user-registration-form" method="POST" action="register_user.php" class="grid md:grid-cols-2 grid-cols-1 gap-6">
@@ -58,15 +58,16 @@
 
             <!-- Current Area -->
             <div class="flex flex-col">
-                <label for="area_id" class="text-white">Current Area</label>
-                <select id="area_id" name="area_id" class="p-2 bg-zinc-700 text-white rounded-md" required>
-                    <option value="" disabled selected>Select Area</option>
+                <label for="current_area" class="text-white">Current Area</label>
+                <select id="current_area" name="current_area" class="p-2 bg-zinc-700 text-white rounded-md" required>
+                    <option value="" disabled selected>Select Your Area</option>
                     <?php
                     // Fetch areas from the database and populate the dropdown
-                    include('./fun/db.php'); // Adjust the path as needed
-                    $areas = $conn->query("SELECT id, name FROM areas");
-                    while ($area = $areas->fetch_assoc()) {
-                        echo "<option value='{$area['id']}'>{$area['name']}</option>";
+                    include('./includes/db_connection.php'); // Adjust the path as needed
+                    $query = "SELECT name FROM areas ORDER BY name ASC";
+                    $result = mysqli_query($conn, $query);
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        echo "<option value='" . htmlspecialchars($row['name']) . "'>" . htmlspecialchars($row['name']) . "</option>";
                     }
                     ?>
                 </select>
@@ -85,15 +86,17 @@
             <!-- Profile Image URL -->
             <div class="flex flex-col">
                 <label for="profile_image" class="text-white">Profile Image URL</label>
-                <input type="url" id="profile_image" name="profile_image" class="p-2 bg-zinc-700 text-white rounded-md" placeholder="Enter the image URL for your profile">
+                <input type="url" id="profile_image" name="profile_image" class="p-2 bg-zinc-700 text-white rounded-md" placeholder="Enter profile image URL (optional)">
             </div>
 
             <!-- Submit Button -->
-            <div class="col-span-1">
+            <div class="col-span-1 flex md:flex-row flex-col justify-around items-center w-full">
                 <button type="submit" class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 w-full">
                     Register
                 </button>
             </div>
+            <a href="log.php" class="text-yellow-500 hover:text-yellow-600">already have an account? Login</a>
+
         </form>
     </section>
 </main>
@@ -124,19 +127,17 @@
                 processData: false,
                 success: function(response) {
                     var result = JSON.parse(response);
-                    if (result.status === 'success') {
-                        $('#modal-message').text(result.message);
-                        setTimeout(() => {
-                            window.location.href = './login.php';
-                        }, 2000);
-                    } else {
-                        $('#modal-message').text(result.message);
-                    }
+                    
+                    // Show the message
+                    $('#modal-message').text(result.message);
+
+                    // Hide the modal after a few seconds
                     setTimeout(function() {
                         $('#modal').addClass('hidden');
                     }, 2000);
                 },
                 error: function() {
+                    // Handle AJAX error
                     $('#modal-message').text('Error occurred, please try again');
                     setTimeout(function() {
                         $('#modal').addClass('hidden');
@@ -146,3 +147,4 @@
         });
     });
 </script>
+

@@ -1,14 +1,8 @@
-<?php include('./fun/db.php'); ?>
 <?php include('./includes/header.php'); ?>
+<?php include('./includes/nav.php'); ?>
 
 <?php
-session_start(); // Make sure the session is started
 
-// Check if the user is logged in
-if (!isset($_SESSION['username'])) {
-    header('Location: log.php'); // Redirect if user is not logged in
-    exit();
-}
 
 // Fetch user details from the database based on the session username
 $username = $_SESSION['username'];
@@ -75,7 +69,6 @@ $totalPages = ceil($totalBookingsCount / $limit);
 
 ?>
 
-<?php include('./includes/nav.php'); ?>
 
 <!-- Main Content -->
 <section class="relative md:w-3/4 flex justify-center items-center bg-slate-500 rounded-3xl p-4">

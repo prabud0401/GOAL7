@@ -1,6 +1,4 @@
 <?php
-// Start session to check if user is logged in
-session_start();
 
 // Include necessary files and database connection
 include('./includes/header.php');

@@ -1,95 +1,55 @@
 <?php
-// Include the database connection file
-include('./db.php');
-
-// Start the session
 session_start();
 
-// Initialize response array
-$response = array('status' => '', 'message' => '', 'redirect_url' => '', 'username' => '');
+// Include database connection
+include('./db.php'); // Assuming 'db.php' contains the $conn variable
 
-// Check if form data is posted
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Retrieve form data
-    $username_or_email = $_POST['username_or_email'] ?? '';
-    $password = $_POST['password'] ?? '';
+// Get form data
+$user_input = $_POST['username_or_email'];
+$input_password = $_POST['password'];
 
-    // Basic validation
-    if (empty($username_or_email) || empty($password)) {
-        $response['status'] = 'error';
-        $response['message'] = 'Please fill in all fields.';
+// Prepare SQL query to check if user exists by username or email
+$sql = "SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $user_input, $user_input); // Binding both username and email as strings
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Check if user exists
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+
+    // Verify password
+    if (password_verify($input_password, $user['password'])) {
+        // Password is correct, create session and respond with success
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role'];
+
+        // Set the redirect URL based on user role
+        $redirect_url = ($user['role'] === 'client') ? './client/' : './index.php';
+
+        // Return success response with redirect URL
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Login successful! Redirecting...',
+            'redirect_url' => $redirect_url // Redirect based on user role
+        ]);
     } else {
-        // Check if the input is an email or username
-        if (filter_var($username_or_email, FILTER_VALIDATE_EMAIL)) {
-            // It's an email
-            $query = "SELECT * FROM users WHERE email = ?";
-        } else {
-            // It's a username
-            $query = "SELECT * FROM users WHERE username = ?";
-        }
-
-        // Prepare the query to fetch the user based on username or email
-        if ($stmt = $conn->prepare($query)) {
-            $stmt->bind_param("s", $username_or_email);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            if ($result->num_rows > 0) {
-                // Fetch user data
-                $user = $result->fetch_assoc();
-
-                // Verify the password
-                if (password_verify($password, $user['password'])) {
-                    // Successful login, check user role
-                    $role = $user['role'];
-
-                    // Store the username in the session
-                    $_SESSION['username'] = $user['username'];
-
-                    // Debugging: Check if username is stored in the session
-                    if (isset($_SESSION['username'])) {
-                        echo "Username stored in session: " . $_SESSION['username']; // Debugging message
-                    } else {
-                        echo "Username not stored in session.";
-                    }
-
-                    // Set redirect URL based on role
-                    if ($role === 'admin') {
-                        $response['status'] = 'success';
-                        $response['message'] = 'Login successful!';
-                        $response['redirect_url'] = 'admin_dashboard.php'; // Admin dashboard
-                    } elseif ($role === 'client') {
-                        $response['status'] = 'success';
-                        $response['message'] = 'Login successful!';
-                        $response['redirect_url'] = 'index.php'; // Client dashboard
-                    } elseif ($role === 'customer') {
-                        $response['status'] = 'success';
-                        $response['message'] = 'Login successful!';
-                        $response['redirect_url'] = 'index.php'; // Customer dashboard
-                    } else {
-                        $response['status'] = 'error';
-                        $response['message'] = 'User role not recognized.';
-                    }
-                } else {
-                    $response['status'] = 'error';
-                    $response['message'] = 'Invalid password.';
-                }
-            } else {
-                $response['status'] = 'error';
-                $response['message'] = 'User not found.';
-            }
-
-            $stmt->close();
-        } else {
-            $response['status'] = 'error';
-            $response['message'] = 'Failed to prepare database query.';
-        }
+        // Password is incorrect
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Invalid username or password.'
+        ]);
     }
-
-    // Close the database connection
-    $conn->close();
-
-    // Return the response as JSON
-    echo json_encode($response);
+} else {
+    // User does not exist
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid username or password.'
+    ]);
 }
+
+$stmt->close();
+$conn->close();
 ?>
