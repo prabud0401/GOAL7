@@ -82,61 +82,64 @@ $conn->close();
     <section class="w-full md:w-3/4 w-full h-full">
         <h2 class="text-2xl font-bold text-yellow-500 mb-8 text-center">Profile Management</h2>
 
-        <form id="profile-form" method="POST" class="grid grid-cols-1 gap-6">
-            <!-- Profile Image -->
-            <div class="flex justify-center mb-6">
-                <?php
-                // Check if the user has a profile image URL
-                $profileImage = $user['profile_image_url'] ? $user['profile_image_url'] : 'default-profile.png';
-                ?>
-                <img src="<?= $profileImage ?>" alt="Profile Image" class="rounded-full w-40 h-40 mb-4">
+        <form id="profile-form" method="POST" class="grid md:grid-cols-2 grid-cols-1 gap-6">
+            <div class="flex flex-col justify-center items-center space-y-8">
+                <!-- Profile Image -->
+                <div class="flex justify-center">
+                    <?php
+                    // Check if the user has a profile image URL
+                    $profileImage = $user['profile_image_url'] ? $user['profile_image_url'] : 'default-profile.png';
+                    ?>
+                    <img src="<?= $profileImage ?>" alt="Profile Image" class="rounded-full w-40 h-40">
+                </div>
+                <div class="flex jusitfy-center items-center space-x-8">
+                    <!-- Submit Button -->
+                    <button type="submit" class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600">
+                        Update Profile
+                    </button>
+                    <!-- Delete Account -->
+                    <a href="profile.php?delete=true" onclick="return confirm('Are you sure you want to delete your account?')" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">
+                        Delete Account
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <!-- Full Name -->
+                <div class="flex flex-col">
+                    <label for="full_name" class="text-white">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" value="<?= $user['name'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" required>
+                </div>
+
+                <!-- Email -->
+                <div class="flex flex-col">
+                    <label for="email" class="text-white">Email</label>
+                    <input type="email" id="email" name="email" value="<?= $user['email'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="flex flex-col">
+                    <label for="phone" class="text-white">Phone Number</label>
+                    <input type="text" id="phone" name="phone" value="<?= $user['phone'] ?>" class="p-2 bg-zinc-700 text-white rounded-md">
+                </div>
+
+                <!-- Address -->
+                <div class="flex flex-col">
+                    <label for="address" class="text-white">Address</label>
+                    <textarea id="address" name="address" class="p-2 bg-zinc-700 text-white rounded-md"><?= $user['address'] ?></textarea>
+                </div>
+
+                <!-- Profile Image URL -->
+                <div class="flex flex-col">
+                    <label for="profile_image" class="text-white">Profile Image URL</label>
+                    <input type="url" id="profile_image" name="profile_image" value="<?= $user['profile_image_url'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" placeholder="Enter the image URL for your profile">
+                </div>
             </div>
 
 
-            <!-- Full Name -->
-            <div class="flex flex-col">
-                <label for="full_name" class="text-white">Full Name</label>
-                <input type="text" id="full_name" name="full_name" value="<?= $user['name'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" required>
-            </div>
-
-            <!-- Email -->
-            <div class="flex flex-col">
-                <label for="email" class="text-white">Email</label>
-                <input type="email" id="email" name="email" value="<?= $user['email'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" required>
-            </div>
-
-            <!-- Phone -->
-            <div class="flex flex-col">
-                <label for="phone" class="text-white">Phone Number</label>
-                <input type="text" id="phone" name="phone" value="<?= $user['phone'] ?>" class="p-2 bg-zinc-700 text-white rounded-md">
-            </div>
-
-            <!-- Address -->
-            <div class="flex flex-col">
-                <label for="address" class="text-white">Address</label>
-                <textarea id="address" name="address" class="p-2 bg-zinc-700 text-white rounded-md"><?= $user['address'] ?></textarea>
-            </div>
-
-            <!-- Profile Image URL -->
-            <div class="flex flex-col">
-                <label for="profile_image" class="text-white">Profile Image URL</label>
-                <input type="url" id="profile_image" name="profile_image" value="<?= $user['profile_image_url'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" placeholder="Enter the image URL for your profile">
-            </div>
-
-            <!-- Submit Button -->
-            <div class="col-span-1">
-                <button type="submit" class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 w-full">
-                    Update Profile
-                </button>
-            </div>
         </form>
 
-        <!-- Delete Account -->
-        <a href="profile.php?delete=true" onclick="return confirm('Are you sure you want to delete your account?')" class="text-center mt-4 block text-red-600">
-            <button class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 w-full">
-                Delete Account
-            </button>
-        </a>
+
     </section>
 </main>
 

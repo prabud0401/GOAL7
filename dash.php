@@ -72,15 +72,23 @@ $totalPages = ceil($totalBookingsCount / $limit);
 
 <!-- Main Content -->
  <div class="flex w-full justify-center items-center space-x-8">
-    <section class="relative md:w-3/4 flex justify-center items-center bg-slate-500 rounded-3xl p-4">
-        <!-- cards -->
-        <div class="flex md:flex-row flex-col  gap-8 justify-center items-center w-full">
-            
-            <!-- Hello Card -->
-            <div class="w-[200px] h-[80px]  p-4 flex items-center justify-center text-black">
-                <p class="text-lg">Hello, <?php echo htmlspecialchars($user['name']); ?>!</p>
-            </div>
+    <section class="flex justify-center items-center md:flex-row flex-col">
+                    <!-- Hello Card -->
+                    <div class="w-[200px] h-[80px]  p-4 flex items-center justify-center text-black">
+                        <p class="text-lg">Hello, <?php echo htmlspecialchars($user['name']); ?>!</p>
+                    </div>
 
+        <!-- cards -->
+        <div class="flex md:flex-row flex-col  gap-8 justify-center items-center w-full relative md:w-3/4  bg-slate-500 rounded-3xl p-4">
+            
+
+            <!-- Total Bookings Card -->
+            <a href="profile.php" class="w-[200px] h-[80px] bg-gradient-to-r from-slate-800 via-slate-600 to-slate-500 rounded-lg p-4 flex items-center justify-center text-white">
+                <div class="flex flex-col items-center">
+                    <i class="ri-account-circle-line text-2xl"></i>
+                    <p class="text-lg">Profile</p>
+                </div>
+            </a>
             <!-- Total Bookings Card -->
             <div class="w-[200px] h-[80px] bg-gradient-to-r from-green-500 via-yellow-500 to-orange-500 rounded-lg p-4 flex items-center justify-center text-white">
                 <div class="flex flex-col items-center">

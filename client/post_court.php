@@ -1,11 +1,5 @@
-<?php include('../includes/header.php'); 
-// Check if the user is logged in and has the 'client' role
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'client') {
-    // If not, redirect to the login page (or any other page you choose)
-    header('Location: ../index.php');
-    exit();
-}
-?>
+<?php include('../includes/header.php'); ?>
+<?php include('./nav.php'); ?>
 
 <!-- Modal for Loading/Processing -->
 <div id="modal" class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">
@@ -138,63 +132,3 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'client') {
 </main>
 
 <?php include('../includes/footer.php'); ?>
-
-<!-- jQuery for AJAX -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // Display image if URL is provided
-        $('#image_url').on('input', function() {
-            var imageUrl = $(this).val();
-            if (imageUrl) {
-                $('#court-image-preview').attr('src', imageUrl);
-                $('#image-preview').removeClass('hidden');
-            }
-        });
-
-        // Handle form submission via AJAX
-        $('#insert-court-form').on('submit', function(e) {
-            e.preventDefault(); // Prevent default form submission
-
-            // Show loading modal
-            $('#modal').removeClass('hidden');
-            $('#modal-message').text('Processing...');
-
-            // Create a FormData object and append the form data
-            var formData = new FormData(this);
-
-            // Add predefined owner_id to form data
-            formData.append('owner_id', 1); // Predefine the owner_id as 1 (for now)
-
-            // If the image URL is provided, append it directly
-            var imageUrl = $("#image_url").val();
-            formData.append('image', imageUrl); // Add the image URL directly here
-
-            // AJAX request to insert futsal court data
-            $.ajax({
-                url: './insert_futsal_court.php', // Backend PHP to handle insertion
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    var result = JSON.parse(response); // Parse the response JSON
-                    if(result.status === 'success') {
-                        $('#modal-message').text(result.message); // Display success message
-                    } else {
-                        $('#modal-message').text(result.message); // Display error message
-                    }
-                    setTimeout(function() {
-                        $('#modal').addClass('hidden'); // Hide the modal after 2 seconds
-                    }, 2000);
-                },
-                error: function() {
-                    $('#modal-message').text('Error occurred, please try again');
-                    setTimeout(function() {
-                        $('#modal').addClass('hidden'); // Hide the modal after error
-                    }, 2000);
-                }
-            });
-        });
-    });
-</script>

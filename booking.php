@@ -61,10 +61,61 @@ if ($stmt->num_rows > 0) {
     echo "<p>Error: User not found.</p>";
     exit;
 }
+function getFutsalCourtSlots($conn, $slotIds) {
+    // Prepare the SQL query to fetch data based on multiple ids
+    $placeholders = implode(',', array_fill(0, count($slotIds), '?')); // Create placeholders for the prepared statement
+    
+    $sql = "SELECT * FROM futsal_court_slots WHERE id IN ($placeholders)";
+    
+    // Prepare the statement
+    if ($stmt = $conn->prepare($sql)) {
+        // Bind the parameters for the placeholders
+        $types = str_repeat("i", count($slotIds)); // Repeat 'i' for each id in the array
+        $stmt->bind_param($types, ...$slotIds);
+        
+        // Execute the statement
+        $stmt->execute();
+        
+        // Get the result of the query
+        $result = $stmt->get_result();
+        
+        // Check if any rows are returned
+        if ($result->num_rows > 0) {
+            // Fetch the data as an associative array
+            $data = $result->fetch_all(MYSQLI_ASSOC);
+            
+            // Return the data
+            return $data;
+        } else {
+            // No records found
+            return null;
+        }
+        
+        // Close the statement
+        $stmt->close();
+    } else {
+        // Return false if there was an error with the SQL preparation
+        return false;
+    }
+}
+$slotsData = getFutsalCourtSlots($conn, $slotIds);
+foreach ($slotsData as $slot) { 
+    
+    } 
+
+
+// Check if any slot is booked
+$slotBooked = false;
+foreach ($slotsData as $slot) {
+    if ($slot['is_booked'] == 1) {
+        $slotBooked = true;
+        break; // Exit the loop as we found a booked slot
+    }
+}
 ?>
 
 <main class="w-full h-auto flex justify-center p-4 text-black">
-    <section class="bg-slate-500 rounded-3xl md:w-3/4 w-full h-full p-4 justify-center items-center flex flex-col">
+    <section class="bg-slate-500 rounded-3xl md:w-3/4 w-full h-full p-4 space-y-4 justify-center items-center flex flex-col">
         <h2 class="text-2xl font-bold text-yellow-500 mb-8 text-center"><?= htmlspecialchars($futsalName); ?> Booking Details</h2>
 
         <!-- Display Booking Details -->
@@ -78,17 +129,20 @@ if ($stmt->num_rows > 0) {
             <p class="text-gray-300">Location: <?= htmlspecialchars($futsalLocation); ?></p>
             <p class="text-gray-300">Price per Hour: LKR <?= number_format($pricePerHour, 2); ?></p>
         </div>
-
+        <?php if ($slotBooked): ?>
+            <!-- Show error message if any slot is booked -->
+            <p class="text-red-500 text-xl ">Something went wrong, already booked slots, try again.</p>
+        <?php else: ?>
         <!-- Selected Time Slots -->
-        <h3 class="text-xl font-bold text-yellow-500 mt-6">Selected Time Slots</h3>
-        <ul class="list-disc pl-6">
-            <?php foreach ($slotIds as $slotId) { ?>
-                <li class="text-gray-300">Slot ID: <?= htmlspecialchars($slotId); ?></li>
-            <?php } ?>
-        </ul>
+        <h3 class="text-xl font-bold text-yellow-500">Selected Time Slots</h3>
+            <div class="flex space-x-8 w-full justify-center items-center">
+                <?php foreach ($slotsData as $slot) { ?>
+                    <p class="bg-green-500 text-white py-1 px-2 rounded-lg"><?= htmlspecialchars($slot['slot_hour']); ?></p>
+                <?php } ?>
+            </div>
 
         <!-- Booking Summary -->
-        <div class="mt-4">
+        <div class="">
             <p class="text-white">Total Duration: <?= $totalDuration; ?> hour(s)</p>
 
             <?php if ($promoApplied) { ?>
@@ -105,8 +159,8 @@ if ($stmt->num_rows > 0) {
         </div>
 
         <!-- Payment Method Selection -->
-        <div class="flex md:flex-row flex-col w-full p-4 md:space-x-16 md:w-3/4 justify-center items-center">
-            <div class="mt-6 text-center text-black">
+        <div class="flex md:flex-row flex-col w-full md:space-x-16 md:w-3/4 justify-center items-center">
+            <div class="text-center text-black">
                 <label for="paymentMethod" class="text-white">Select Payment Method</label>
                 <select id="paymentMethod" class="w-full p-2 mb-4">
                     <option value="card">Card Payment</option>
@@ -131,13 +185,13 @@ if ($stmt->num_rows > 0) {
                         <input type="text" id="cvv" class="w-full p-2" placeholder="123" required>
                     </div>
                     <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                        Simulate Payment (Card)
+                        Pay (Card)
                     </button>
                 </form>
             </div>
 
             <!-- Bank Transfer Instructions -->
-            <div id="bankTransferForm" class="mt-8 hidden">
+            <div id="bankTransferForm" class="hidden flex flex-col space-y-4">
                 <h3 class="text-xl font-bold text-yellow-500">Bank Transfer Instructions</h3>
                 <p class="text-white">Please transfer the total amount to the following bank account:</p>
                 <ul class="text-white">
@@ -146,7 +200,7 @@ if ($stmt->num_rows > 0) {
                     <li>Account Name: Futsal Booking</li>
                 </ul>
                 <button id="confirmBankTransfer" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                    Mark as Not Paid (Bank)
+                    Pay (Bank)
                 </button>
             </div>
         </div>
@@ -174,6 +228,8 @@ if ($stmt->num_rows > 0) {
                 <button class="mt-4 px-4 py-2 bg-red-500 text-white rounded" id="errorClose">Close</button>
             </div>
         </div>
+        <?php endif; ?>
+
     </section>
 </main>
 

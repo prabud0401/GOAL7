@@ -1,5 +1,4 @@
 <?php
-
 // Include necessary files and database connection
 include('./includes/header.php');
 include('./includes/nav.php');
@@ -24,7 +23,6 @@ if (isset($_GET['id'])) {
     <section class="bg-slate-500 rounded-3xl md:w-3/4 w-full h-full p-4">
         <h2 class="text-2xl font-bold text-yellow-500 mb-8 text-center"><?= htmlspecialchars($futsal['name']); ?></h2>
 
-        <!-- Futsal Court Details -->
         <div class="bg-zinc-800 rounded-lg overflow-hidden shadow-md p-4 md:w-[400px]">
             <img src="<?= $futsal['image']; ?>" alt="Futsal Court" class="w-full h-[180px] object-cover">
             <h3 class="font-bold text-lg mt-4"><?= htmlspecialchars($futsal['name']); ?></h3>
@@ -36,30 +34,24 @@ if (isset($_GET['id'])) {
         </div>
 
         <div class="flex w-full justify-between items-center">
-            <!-- Available Time Slots -->
             <h3 class="text-xl font-bold text-yellow-500 mt-6">Available Time Slots</h3>
-            <!-- Date Selector Dropdown -->
             <div class="mt-6">
                 <select id="slot-date" class="mt-2 p-2 bg-white border rounded-md" onchange="fetchSlotsForDate()">
-                    <option value="" disabled selected>Select Date</option>
                     <?php
-                    // Get today and next 7 days dates for slot selection
                     for ($i = 0; $i < 7; $i++) {
                         $date = date('Y-m-d', strtotime("+$i days"));
-                        echo "<option value='$date'>" . date('l, F j, Y', strtotime($date)) . "</option>";
+                        $selected = ($i === 0) ? 'selected' : '';
+                        echo "<option value='$date' $selected>" . date('l, F j, Y', strtotime($date)) . "</option>";
                     }
                     ?>
                 </select>
             </div>
-
-
         </div>
 
         <div id="slots" class="grid md:grid-cols-10 grid-cols-3 gap-4 mt-4">
-            <!-- Available slots will be populated here -->
+            <!-- Available slots for the current date will be loaded here -->
         </div>
 
-        <!-- Booking Button -->
         <div class="mt-4">
             <button id="book-btn" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600" onclick="showConfirmationModal()">
                 Book Selected Slots
@@ -68,20 +60,17 @@ if (isset($_GET['id'])) {
     </section>
 </main>
 
-<!-- Modal for Confirmation -->
 <div id="modal" class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">
     <div class="bg-slate-500 p-6 rounded-lg text-center">
         <p id="modal-message" class="text-xl text-yellow-600">Processing...</p>
-
         <div id="slot-details" class="mt-4">
             <ul id="selected-slots"></ul>
             <p id="total-duration"></p>
             <p id="total-price"></p>
             <p id="futsal-name"></p>
             <p id="futsal-address"></p>
-            <p id="username" class="text-white mt-2"></p> <!-- Username will appear here -->
+            <p id="username" class="text-white mt-2"></p>
         </div>
-
         <div class="mt-4">
             <button id="confirm-btn" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600" onclick="confirmBooking()">Confirm Booking</button>
             <button class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600" onclick="closeModal()">Cancel</button>
@@ -92,40 +81,39 @@ if (isset($_GET['id'])) {
 <script>
     let selectedSlots = [];
 
-    // Fetch the available slots based on selected date
+    document.addEventListener("DOMContentLoaded", () => {
+        fetchSlotsForDate(); // Automatically fetch slots for the current date on load
+    });
+
     function fetchSlotsForDate() {
         const selectedDate = document.getElementById('slot-date').value;
 
-        if (!selectedDate) return; // Exit if no date is selected
-
-        // Fetch available slots for the selected date using AJAX
         fetch(`fetch_slots.php?futsal_id=<?= $futsal['id']; ?>&slot_date=${selectedDate}`)
             .then(response => response.json())
             .then(data => {
                 const slotsContainer = document.getElementById('slots');
-                slotsContainer.innerHTML = ''; // Clear previous slots
+                slotsContainer.innerHTML = '';
 
-                // Check if slots are returned
                 if (data.slots.length === 0) {
                     slotsContainer.innerHTML = '<p class="text-white">No available slots for this date.</p>';
                     return;
                 }
 
-                // Loop through each slot and create the corresponding button
                 data.slots.forEach(slot => {
                     const button = document.createElement('button');
-                    button.classList.add('bg-yellow-500', 'text-white', 'py-2', 'px-4', 'rounded-lg', 'hover:bg-yellow-600');
+                    button.classList.add('py-2', 'px-4', 'rounded-lg', 'hover:bg-yellow-600');
                     button.textContent = slot.slot_hour;
-                    button.setAttribute('data-slot-id', slot.id);
-                    button.setAttribute('data-slot-hour', slot.slot_hour);
-                    button.setAttribute('onclick', 'selectSlot(this)');
-                    
-                    // Disable button if slot is booked
+                    button.dataset.slotId = slot.id;
+                    button.dataset.slotHour = slot.slot_hour;
+
                     if (slot.is_booked) {
                         button.classList.add('bg-gray-400', 'cursor-not-allowed');
-                        button.setAttribute('disabled', true);
+                        button.disabled = true;
+                    } else {
+                        button.classList.add('bg-yellow-500', 'text-white');
+                        button.setAttribute('onclick', 'selectSlot(this)');
                     }
-                    
+
                     slotsContainer.appendChild(button);
                 });
             })
@@ -133,8 +121,8 @@ if (isset($_GET['id'])) {
     }
 
     function selectSlot(button) {
-        const slotId = button.getAttribute('data-slot-id');
-        const slotHour = button.getAttribute('data-slot-hour');
+        const slotId = button.dataset.slotId;
+        const slotHour = button.dataset.slotHour;
 
         if (selectedSlots.some(slot => slot.slotId === slotId)) {
             selectedSlots = selectedSlots.filter(slot => slot.slotId !== slotId);
@@ -146,48 +134,27 @@ if (isset($_GET['id'])) {
     }
 
     function showConfirmationModal() {
-    // Check if user is logged in (PHP session check)
-    <?php if ($isLoggedIn): ?>
+        <?php if ($isLoggedIn): ?>
         if (selectedSlots.length === 0) {
-            alert("Please select at least one time slot.");
+            alert("Please select at least one slot.");
             return;
         }
 
-        let totalDuration = selectedSlots.length;
-        let totalPrice = totalDuration * <?= $futsal['price_per_hour']; ?>;
-        let futsalName = "<?= htmlspecialchars($futsal['name']); ?>";
-        let futsalAddress = "<?= htmlspecialchars($futsal['location']); ?>";
-        let username = "<?= $_SESSION['username']; ?>"; // Get the username from session
-
-        // Populate modal with selected slots and details
         const slotDetailsList = document.getElementById('selected-slots');
-        slotDetailsList.innerHTML = '';
-        selectedSlots.forEach(slot => {
-            const listItem = document.createElement('li');
-            listItem.textContent = slot.slotHour;
-            slotDetailsList.appendChild(listItem);
-        });
+        slotDetailsList.innerHTML = selectedSlots.map(slot => `<li>${slot.slotHour}</li>`).join('');
+        document.getElementById('total-duration').textContent = `Total Duration: ${selectedSlots.length} hour(s)`;
+        document.getElementById('total-price').textContent = `Total Price: LKR ${(selectedSlots.length * <?= $futsal['price_per_hour']; ?>).toFixed(2)}`;
+        document.getElementById('futsal-name').textContent = `Futsal Name: <?= htmlspecialchars($futsal['name']); ?>`;
+        document.getElementById('futsal-address').textContent = `Futsal Location: <?= htmlspecialchars($futsal['location']); ?>`;
+        document.getElementById('username').textContent = `Username: <?= $_SESSION['username']; ?>`;
 
-        document.getElementById('total-duration').textContent = `Total Duration: ${totalDuration} hour(s)`;
-        document.getElementById('total-price').textContent = `Total Price: LKR ${totalPrice.toFixed(2)}`;
-        document.getElementById('futsal-name').textContent = `Futsal Name: ${futsalName}`;
-        document.getElementById('futsal-address').textContent = `Futsal Location: ${futsalAddress}`;
-        document.getElementById('username').textContent = `Username: ${username}`; // Display the username in the modal
-
-        // Show modal
         document.getElementById('modal').classList.remove('hidden');
-    <?php else: ?>
-        // If user is not logged in, show login prompt
-        const modalMessage = document.getElementById('modal-message');
-        modalMessage.innerHTML = ` 
-            <p>You must log in first.</p>
-            <a href="login.php" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Go to Login</a>
-        `;
-        document.getElementById('modal').classList.remove('hidden');
-    <?php endif; ?>
-}
+        <?php else: ?>
+        alert('You must log in first.');
+        <?php endif; ?>
+    }
 
-function confirmBooking() {
+    function confirmBooking() {
     // Get the selected slot IDs
     const slotIds = selectedSlots.map(slot => slot.slotId); // Get the selected slot IDs
     const futsalId = "<?= $futsal['id']; ?>"; // Get the futsal court ID
@@ -206,7 +173,6 @@ function confirmBooking() {
     // Redirect to the booking page with the data in the URL
     window.location.href = url.toString();
 }
-
 
     function closeModal() {
         document.getElementById('modal').classList.add('hidden');
