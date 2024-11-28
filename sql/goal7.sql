@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 26, 2024 at 04:23 PM
+-- Generation Time: Nov 28, 2024 at 09:34 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -34,6 +34,10 @@ CREATE TABLE `areas` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `areas`
+--
+
 INSERT INTO `areas` (`id`, `name`, `created_at`, `updated_at`) VALUES
 (1, 'North', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
 (2, 'South', '2024-11-25 14:46:34', '2024-11-25 14:46:34'),
@@ -48,23 +52,6 @@ INSERT INTO `areas` (`id`, `name`, `created_at`, `updated_at`) VALUES
 (11, 'Galle', '2024-11-26 05:26:17', '2024-11-26 05:26:17'),
 (12, 'Jaffna', '2024-11-26 05:26:17', '2024-11-26 05:26:17'),
 (13, 'Matara', '2024-11-26 05:26:17', '2024-11-26 05:26:17');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `futsal_bookings`
---
-
-CREATE TABLE `futsal_bookings` (
-  `id` int(11) NOT NULL,
-  `futsal_court_id` int(11) DEFAULT NULL,
-  `username` varchar(255) NOT NULL,
-  `total_duration` int(11) NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
-  `booking_code` varchar(20) NOT NULL,
-  `booking_date` datetime DEFAULT current_timestamp(),
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -176,14 +163,6 @@ ALTER TABLE `areas`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `futsal_bookings`
---
-ALTER TABLE `futsal_bookings`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `booking_code` (`booking_code`),
-  ADD KEY `futsal_court_id` (`futsal_court_id`);
-
---
 -- Indexes for table `futsal_courts`
 --
 ALTER TABLE `futsal_courts`
@@ -224,13 +203,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `areas`
 --
 ALTER TABLE `areas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `futsal_bookings`
---
-ALTER TABLE `futsal_bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `futsal_courts`
@@ -265,12 +238,6 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `futsal_bookings`
---
-ALTER TABLE `futsal_bookings`
-  ADD CONSTRAINT `futsal_bookings_ibfk_1` FOREIGN KEY (`futsal_court_id`) REFERENCES `futsal_courts` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `futsal_reviews`
