@@ -14,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
-    $full_name = $_POST['full_name'] ?? '';
+    $full_name = $_POST['name'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $address = $_POST['address'] ?? '';
     $current_area = $_POST['area_id'] ?? '';
     $role = $_POST['role'] ?? '';
-    $profile_image_url = $_POST['profile_image_url'] ?? '';  // New profile image field
+    $profile_image_url = $_POST['profile_image'] ?? '';  // New profile image field
 
     // Basic validation
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {

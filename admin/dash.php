@@ -38,7 +38,17 @@ $paymentsQuery = $conn->query("SELECT * FROM payments LIMIT $limit OFFSET $offse
         <div class="w-[200px] h-[80px] p-4 flex items-center justify-center text-black">
             <p class="text-lg">Hello, Admin!</p>
         </div>
-
+        <div class="w-[200px] h-[80px] bg-gradient-to-r from-green-500 via-yellow-500 to-orange-500 rounded-lg p-4 flex items-center justify-center text-white">
+            <?php
+                // Fetch total number of futsal courts from the database
+                $totalFutsalsResult = $conn->query("SELECT COUNT(*) AS total FROM futsal_courts");
+                $totalFutsals = $totalFutsalsResult->fetch_assoc()['total'];
+                ?>
+            <div class="flex flex-col items-center">
+                <i class="ri-bookmark-line text-2xl"></i>
+                <p class="text-lg"><?php echo $totalFutsals; ?> Futsal Courts</p>
+            </div>
+        </div>
         <div class="w-[200px] h-[80px] bg-gradient-to-r from-green-500 via-yellow-500 to-orange-500 rounded-lg p-4 flex items-center justify-center text-white">
             <div class="flex flex-col items-center">
                 <i class="ri-bookmark-line text-2xl"></i>

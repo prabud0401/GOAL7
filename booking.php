@@ -54,7 +54,11 @@ if ($stmt->num_rows > 0) {
         // Apply the 50% discount
         $discountedPrice = $totalPrice / 2;
         $promoApplied = true;
-
+                // Update promo_used to 1
+                $updateQuery = "UPDATE users SET promo_used = 1 WHERE username = ?";
+                $updateStmt = $conn->prepare($updateQuery);
+                $updateStmt->bind_param("s", $username);
+                $updateStmt->execute();
         
     }
 } else {

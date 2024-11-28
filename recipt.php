@@ -204,3 +204,25 @@ if (isset($_GET['payment_id'])) {
     ]);
 }
 ?>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Capture the HTML content of the receipt
+    var receiptContent = $(".receipt").html();
+
+    // Send the content via AJAX to the send_mail.php script
+    $.ajax({
+        url: './otp/send_mail.php',
+        type: 'POST',
+        data: {
+            receipt_content: receiptContent
+        },
+        success: function(response) {
+            console.log('Email sent successfully:', response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error sending email:', error);
+        }
+    });
+});
+</script>

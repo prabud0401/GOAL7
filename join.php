@@ -83,11 +83,16 @@
                 </select>
             </div>
 
-            <!-- Profile Image URL -->
-            <div class="flex flex-col">
-                <label for="profile_image" class="text-white">Profile Image URL</label>
-                <input type="url" id="profile_image" name="profile_image" class="p-2 bg-zinc-700 text-white rounded-md" placeholder="Enter profile image URL (optional)">
-            </div>
+<!-- Profile Image Upload -->
+<div class="flex flex-col">
+    <label for="image_file" class="text-white">Profile Image</label>
+    <input type="file" id="image_file" name="image_file" class="p-2 bg-zinc-700 text-white rounded-md">
+</div>
+<div class="flex flex-col">
+    <label for="profile_image" class="text-white">Profile Image URL</label>
+    <input type="url" id="profile_image" name="profile_image" class="p-2 bg-zinc-700 text-white rounded-md" placeholder="Profile image URL will appear here" readonly>
+</div>
+
 
             <!-- Submit Button -->
             <div class="col-span-1 flex md:flex-row flex-col justify-around items-center w-full">
@@ -106,45 +111,91 @@
 <!-- jQuery for AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Handle form submission via AJAX
-        $('#user-registration-form').on('submit', function(e) {
-            e.preventDefault();
+$(document).ready(function() {
+    // Handle image upload via AJAX
+    $('#image_file').on('change', function(e) {
+        e.preventDefault();
 
-            // Show loading modal
-            $('#modal').removeClass('hidden');
-            $('#modal-message').text('Processing...');
+        // Get the file input
+        var fileInput = $('#image_file')[0];
+        var formData = new FormData();
+        formData.append('image_file', fileInput.files[0]);
 
-            // Create a FormData object and append the form data
-            var formData = new FormData(this);
+        // Show loading modal
+        $('#modal').removeClass('hidden');
+        $('#modal-message').text('Uploading image...');
 
-            // AJAX request to register the user
-            $.ajax({
-                url: './fun/register_user.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    var result = JSON.parse(response);
-                    
-                    // Show the message
+        // AJAX request to upload image
+        $.ajax({
+            url: 'upload_image.php', // The upload handler PHP file
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                var result = JSON.parse(response);
+
+                if (result.status === 'success') {
+                    // Set the image URL in the profile_image input field
+                    $('#profile_image').val(result.url.trim());
+
+                    // Hide the loading modal
+                    $('#modal').addClass('hidden');
+                } else {
                     $('#modal-message').text(result.message);
-
-                    // Hide the modal after a few seconds
-                    setTimeout(function() {
-                        $('#modal').addClass('hidden');
-                    }, 2000);
-                },
-                error: function() {
-                    // Handle AJAX error
-                    $('#modal-message').text('Error occurred, please try again');
                     setTimeout(function() {
                         $('#modal').addClass('hidden');
                     }, 2000);
                 }
-            });
+            },
+            error: function() {
+                $('#modal-message').text('Error uploading image, please try again.');
+                setTimeout(function() {
+                    $('#modal').addClass('hidden');
+                }, 2000);
+            }
         });
     });
+
+    // Handle form submission via AJAX for registration (same as before)
+    $('#user-registration-form').on('submit', function(e) {
+        e.preventDefault();
+
+        // Show loading modal
+        $('#modal').removeClass('hidden');
+        $('#modal-message').text('Processing registration...');
+
+        // Create a FormData object and append the form data
+        var formData = new FormData(this);
+
+        // AJAX request to register the user
+        $.ajax({
+            url: './fun/register_user.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                var result = JSON.parse(response);
+
+                // Show the message
+                $('#modal-message').text(result.message);
+
+                // Hide the modal after a few seconds
+                setTimeout(function() {
+                    $('#modal').addClass('hidden');
+                }, 2000);
+            },
+            error: function() {
+                // Handle AJAX error
+                $('#modal-message').text('Error occurred, please try again');
+                setTimeout(function() {
+                    $('#modal').addClass('hidden');
+                }, 2000);
+            }
+        });
+    });
+});
+
 </script>
 

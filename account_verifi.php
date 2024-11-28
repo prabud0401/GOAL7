@@ -1,18 +1,18 @@
+<?php include('./includes/nav.php'); ?>
+
 <?php
-include('./fun/db.php');
 include('./includes/header.php');
 
-
-
-// Check if the user is logged in
-if (!isset($_SESSION['username'])) {
+// Check if the 'username' parameter exists in the URL
+if (!isset($_GET['username'])) {
     header('Location: log.php');
     exit();
 }
 
-$username = $_SESSION['username'];
+// Retrieve the username from the URL
+$username = $_GET['username'];
 
-// Fetch user details
+// Fetch user details from the database (example query, adjust as necessary)
 $query = "SELECT * FROM users WHERE username = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $username);
@@ -28,13 +28,9 @@ if (!$user) {
 $email = $user['email'];
 ?>
 
-<?php include('./includes/nav.php'); ?>
-
-<!-- Main Content -->
 <section class="relative md:w-3/4 flex flex-col justify-center items-center bg-slate-500 rounded-3xl p-8 mt-4 text-white">
     <h2 class="text-2xl font-bold mb-4">Account Verification</h2>
 
-    <!-- User Info Card -->
     <div class="w-full max-w-md p-6">
         <p class="text-lg mb-2">Username: <span class="font-semibold"><?php echo htmlspecialchars($username); ?></span></p>
         <p class="text-lg mb-4">Email: <span class="font-semibold"><?php echo htmlspecialchars($email); ?></span></p>
@@ -64,66 +60,60 @@ $email = $user['email'];
     </div>
 </section>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const sendOtpBtn = document.getElementById('sendOtpBtn');
-        const otpInputSection = document.getElementById('otpInputSection');
-        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-        const responseModal = document.getElementById('responseModal');
-        const modalMessage = document.getElementById('modalMessage');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+    $(document).ready(function() {
+        // Send OTP via AJAX
+        $('#sendOtpBtn').click(function() {
+            // Show modal with "Sending OTP..." message before AJAX starts
+            showModal('Sending OTP...');
 
-        // Show OTP input when Send OTP is clicked
-        sendOtpBtn.addEventListener('click', () => {
-            fetch('./otp/send_verification.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            $.ajax({
+                type: 'POST',
+                url: './otp/send_otp.php',
+                data: { email: '<?php echo $email; ?>', action: 'sendOtp' },
+                success: function(response) {
+                    let data = JSON.parse(response);
+                    if (data.success) {
+                        $('#otpInputSection').removeClass('hidden');
+                        showModal('OTP sent successfully! Please check your email.');
+                    } else {
+                        showModal('Failed to send OTP: ' + data.message);
+                    }
                 },
-                body: JSON.stringify({ username: '<?php echo $username; ?>' }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                modalMessage.textContent = data.message;
-                responseModal.classList.remove('hidden');
-
-                if (data.success) {
-                    otpInputSection.classList.remove('hidden');
+                error: function() {
+                    showModal('Error occurred while sending OTP.');
                 }
-            })
-            .catch(error => {
-                modalMessage.textContent = 'An error occurred. Please try again later.';
-                responseModal.classList.remove('hidden');
             });
         });
 
-        // Close modal on button click
-        closeModalBtn.addEventListener('click', () => {
-            responseModal.classList.add('hidden');
-        });
-
-        // Verify OTP
-        verifyOtpBtn.addEventListener('click', () => {
-            const otp = document.getElementById('otp').value;
-
-            fetch('./otp/verify_otp.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username: '<?php echo $username; ?>', otp }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                modalMessage.textContent = data.message;
-                responseModal.classList.remove('hidden');
-            })
-            .catch(error => {
-                modalMessage.textContent = 'An error occurred. Please try again later.';
-                responseModal.classList.remove('hidden');
+        // Verify OTP via AJAX
+        $('#verifyOtpBtn').click(function() {
+            let otp = $('#otp').val();
+            $.ajax({
+                type: 'POST',
+                url: './otp/send_otp.php',
+                data: { otp: otp, action: 'verifyOtp', username: '<?php echo $username; ?>' },  // Include username
+                success: function(response) {
+                    let data = JSON.parse(response);
+                    if (data.success) {
+                        showModal('OTP verified successfully! Your account is now verified.');
+                    } else {
+                        showModal('Invalid OTP!');
+                    }
+                }
             });
         });
+
+        // Modal close button
+        $('#closeModalBtn').click(function() {
+            $('#responseModal').addClass('hidden');
+        });
+
+        // Show modal function
+        function showModal(message) {
+            $('#modalMessage').text(message);
+            $('#responseModal').removeClass('hidden');
+        }
     });
 </script>
-
-<?php include('./includes/footer.php'); ?>

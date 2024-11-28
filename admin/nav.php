@@ -19,10 +19,10 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] != 'admin1234') {
                 <i class="ri-user-line text-2xl"></i>
                 <span>Manage Customers</span>
             </a>
-            <!-- <a href="payments.php" class="flex items-center space-x-2">
+            <a href="futsals.php" class="flex items-center space-x-2">
                 <i class="ri-money-dollar-circle-line text-2xl"></i>
-                <span>Manage Payments</span>
-            </a> -->
+                <span>Manage Futsals</span>
+            </a>
             <a href="clients.php" class="flex items-center space-x-2">
                 <i class="ri-user-add-line text-2xl"></i>
                 <span>Manage Clients</span>

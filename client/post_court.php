@@ -10,38 +10,52 @@
 
 <!-- Main Content -->
 <main class="bg-slate-500 rounded-3xl w-full h-auto flex space-x-16 md:p-16 p-4">
-    <div class="w-1/4 h-full">
+    <div class=" h-full">
         <!-- Image Upload and URL Options -->
         <form id="upload-form" method="POST" enctype="multipart/form-data" class="flex flex-col items-center space-y-4">
-            <label class="text-white">Choose Image Option</label>
-            <div class="flex space-x-4">
-                <label>
-                    <input type="radio" name="image_option" value="upload" checked> Upload Image
-                </label>
-                <label>
-                    <input type="radio" name="image_option" value="url"> Provide Image URL
-                </label>
-            </div>
-
-            <!-- Image URL Section -->
-            <div id="url-section" class="flex flex-col items-center space-y-4">
-                <label for="image_url" class="text-white">Enter Image URL</label>
-                <input type="text" id="image_url" name="image_url" class="bg-zinc-700 text-white rounded-md p-2" placeholder="Enter Image URL">
-            </div>
+            
         </form>
 
-        <!-- Display Image if Uploaded or Provided -->
-        <div id="image-preview" class="mt-4 hidden">
-            <h3 class="text-white">Image Preview</h3>
-            <img id="court-image-preview" src="" alt="Court Image" class="w-64 h-64 rounded-3xl object-cover">
-        </div>
+        
     </div>
 
     <!-- Form to Insert New Futsal Court -->
-    <section id="insert-court" class="w-3/4 h-full">
+    <section id="insert-court" class="w-full h-full">
         <h2 class="text-2xl font-bold text-yellow-500 mb-4">Insert New Court Details</h2>
 
-        <form id="insert-court-form" method="POST" action="insert_futsal_court.php" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form id="insert-court-form" method="POST" action="insert_futsal_court.php" class="flex md:flex-row w-full flex-col md:space-x-8 md:space-y-0 space-y-8">
+            <div class="w-1/4">
+
+                    <div class="flex space-x-4">
+                        <label>
+                            <input type="radio" name="image_option" value="upload" checked> Upload Image
+                        </label>
+                        <label>
+                            <input type="radio" name="image_option" value="url"> Provide Image URL
+                        </label>
+                    </div>
+
+                    <!-- Image URL Section -->
+                    <div id="url-section" class="flex flex-col items-center space-y-4">
+                        <label for="image_url" class="text-white">Enter Image URL</label>
+                        <input type="text" id="image_url" name="image_url" class="bg-zinc-700 text-white rounded-md p-2" placeholder="Enter Image URL">
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div id="upload-section" class="flex flex-col items-center space-y-4">
+                        <label for="image_file" class="text-white">Upload Image</label>
+                        <input type="file" id="image_file" name="image_file" class="bg-zinc-700 text-white rounded-md p-2">
+                    </div>
+                    <!-- Display Image if Uploaded or Provided -->
+                <div id="image-preview" class="mt-4 hidden">
+                    <h3 class="text-white">Image Preview</h3>
+                    <img id="court-image-preview" src="" alt="Court Image" class="w-64 h-64 rounded-3xl object-cover">
+                </div>
+
+            </div>
+
+            <div class="w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <!-- Court Name -->
             <div class="flex flex-col">
                 <label for="name" class="text-white">Court Name</label>
@@ -127,8 +141,94 @@
                     Add Court
                 </button>
             </div>
+            </div>
+
         </form>
     </section>
 </main>
 
 <?php include('../includes/footer.php'); ?>
+
+<!-- jQuery for AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Display image if URL is provided
+        $('#image_url').on('input', function() {
+            var imageUrl = $(this).val();
+            if (imageUrl) {
+                $('#court-image-preview').attr('src', imageUrl);
+                $('#image-preview').removeClass('hidden');
+            }
+        });
+
+        $('#image_file').on('change', function() {
+    var formData = new FormData();
+    formData.append('image_file', this.files[0]); // Append the selected file
+
+    $.ajax({
+        url: '../upload_image.php', // URL of the backend PHP script
+        type: 'POST',
+        data: formData,
+        contentType: false, // Do not set content type, jQuery will handle it
+        processData: false, // Prevent jQuery from processing the data
+        success: function(response) {
+            // Parse the JSON response
+            var data = JSON.parse(response);
+
+            // Check if the upload was successful
+            if (data.status === 'success') {
+                var imageUrl = data.url.trim(); // Get the image URL from the response
+                $('#court-image-preview').attr('src', imageUrl); // Show image preview
+                $('#image-preview').removeClass('hidden'); // Show the preview div
+                $('#image_url').val(imageUrl); // Populate the hidden input field with the image URL
+            } else {
+                // Handle the error case
+                alert('Error: ' + data.message);
+            }
+        },
+        error: function() {
+            alert('Error uploading image. Please try again.');
+        }
+    });
+});
+
+
+        // Handle form submission via AJAX
+$('#insert-court-form').on('submit', function(e) {
+    e.preventDefault(); // Prevent default form submission
+
+    // Show loading modal
+    $('#modal').removeClass('hidden');
+    $('#modal-message').text('Processing...');
+
+    // Create a FormData object and append the form data
+    var formData = new FormData(this);
+
+    // Add predefined owner_id to form data
+    formData.append('owner_id', '1'); // Replace with actual dynamic owner ID if necessary
+
+    // Make AJAX request to the correct backend PHP script
+    $.ajax({
+        url: './insert_futsal_court.php', // Backend PHP to handle insertion
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            $('#modal-message').text('Court details added successfully!');
+            // Set a delay of 3 seconds before reloading the page
+            setTimeout(function() {
+                    window.location.reload(); // Reload the page after 3 seconds
+                }, 3000); // 3000 milliseconds = 3 seconds
+            },
+        error: function() {
+            $('#modal-message').text('Error adding court details. Please try again.');
+            $('#modal').addClass('hidden');
+
+        }
+    });
+});
+
+    });
+</script>

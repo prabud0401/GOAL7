@@ -31,7 +31,7 @@ if ($result->num_rows > 0) {
 
 // Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $full_name = $_POST['full_name'] ?? '';
+    $name = $_POST['name'] ?? '';
     $email = $_POST['email'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $address = $_POST['address'] ?? '';
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Update user details in the database
     $update_query = "UPDATE users SET name = ?, email = ?, phone = ?, address = ?, profile_image_url = ? WHERE username = ?";
     $update_stmt = $conn->prepare($update_query);
-    $update_stmt->bind_param("ssssss", $full_name, $email, $phone, $address, $profile_image, $username);
+    $update_stmt->bind_param("ssssss", $name, $email, $phone, $address, $profile_image, $username);
 
     if ($update_stmt->execute()) {
         echo json_encode(['status' => 'success', 'message' => 'Profile updated successfully']);
@@ -107,8 +107,8 @@ $conn->close();
             <div>
                 <!-- Full Name -->
                 <div class="flex flex-col">
-                    <label for="full_name" class="text-white">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" value="<?= $user['name'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" required>
+                    <label for="name" class="text-white">Full Name</label>
+                    <input type="text" id="name" name="name" value="<?= $user['name'] ?>" class="p-2 bg-zinc-700 text-white rounded-md" required>
                 </div>
 
                 <!-- Email -->
@@ -128,6 +128,12 @@ $conn->close();
                     <label for="address" class="text-white">Address</label>
                     <textarea id="address" name="address" class="p-2 bg-zinc-700 text-white rounded-md"><?= $user['address'] ?></textarea>
                 </div>
+<!-- New Image Upload -->
+<!-- Profile Image Upload -->
+<div class="flex flex-col">
+    <label for="image_file" class="text-white">Profile Image</label>
+    <input type="file" id="image_file" name="image_file" class="p-2 bg-zinc-700 text-white rounded-md">
+</div>
 
                 <!-- Profile Image URL -->
                 <div class="flex flex-col">
@@ -148,46 +154,94 @@ $conn->close();
 <!-- jQuery for AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Handle form submission via AJAX
-        $('#profile-form').on('submit', function(e) {
-            e.preventDefault();
+    // Handle image upload via AJAX
+    $('#image_file').on('change', function(e) {
+        e.preventDefault();
 
-            // Show loading modal
-            $('#modal').removeClass('hidden');
-            $('#modal-message').text('Processing...');
+        // Get the file input
+        var fileInput = $('#image_file')[0];
+        var formData = new FormData();
+        formData.append('image_file', fileInput.files[0]);
 
-            // Create a FormData object and append the form data
-            var formData = new FormData(this);
+        // Show loading modal
+        $('#modal').removeClass('hidden');
+        $('#modal-message').text('Uploading image...');
 
-            // AJAX request to update user profile
-            $.ajax({
-                url: 'profile.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    var result = JSON.parse(response);
-                    if (result.status === 'success') {
-                        $('#modal-message').text('Profile updated successfully!');
-                        setTimeout(function() {
-                            $('#modal').addClass('hidden');
-                        }, 2000);
-                    } else {
-                        $('#modal-message').text('Error updating profile!');
-                        setTimeout(function() {
-                            $('#modal').addClass('hidden');
-                        }, 2000);
-                    }
-                },
-                error: function() {
-                    $('#modal-message').text('Error occurred, please try again');
+        // AJAX request to upload image
+        $.ajax({
+            url: 'upload_image.php', // The upload handler PHP file
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                var result = JSON.parse(response);
+
+                if (result.status === 'success') {
+                    // Set the image URL in the profile_image input field
+                    $('#profile_image').val(result.url.trim());
+
+                    // Hide the loading modal
+                    $('#modal').addClass('hidden');
+                } else {
+                    $('#modal-message').text(result.message);
                     setTimeout(function() {
                         $('#modal').addClass('hidden');
                     }, 2000);
                 }
-            });
+            },
+            error: function() {
+                $('#modal-message').text('Error uploading image, please try again.');
+                setTimeout(function() {
+                    $('#modal').addClass('hidden');
+                }, 2000);
+            }
         });
     });
+    $(document).ready(function() {
+    // Handle form submission via AJAX
+    $('#profile-form').on('submit', function(e) {
+        e.preventDefault();
+
+        // Show loading modal
+        $('#modal').removeClass('hidden');
+        $('#modal-message').text('Processing...');
+
+        // Create a FormData object and append the form data
+        var formData = new FormData(this);
+
+        // AJAX request to update user profile
+        $.ajax({
+            url: 'profile.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                setTimeout(function() {
+                        $('#modal').addClass('hidden');
+                        // Open a new URL after successful profile update
+                        window.location.href = "profile.php";  // Replace 'somepage.php' with your target URL
+                    }, 1000);
+                var result = JSON.parse(response);
+                if (result.status === 'success') {
+                    $('#modal-message').text('Profile updated successfully!');
+                    
+                } else {
+                    $('#modal-message').text('Error updating profile!');
+                    setTimeout(function() {
+                        $('#modal').addClass('hidden');
+                    }, 2000);
+                }
+            },
+            error: function() {
+                $('#modal-message').text('Error occurred, please try again');
+                setTimeout(function() {
+                    $('#modal').addClass('hidden');
+                }, 2000);
+            }
+        });
+    });
+});
+
 </script>

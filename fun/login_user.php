@@ -25,6 +25,8 @@ if ($result->num_rows > 0) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['role'] = $user['role'];
+        $_SESSION['email'] = $user['email'];
+
 
         // Set the redirect URL based on user role
         $redirect_url = ($user['role'] === 'client') ? './client/' : './index.php';
